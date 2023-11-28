@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style/style.css">
+	<title>To do list</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Pacifico&family=Tinos&display=swap" rel="stylesheet">
+</head>
+
+<body>
+	<div class="header">
+		<div class="header-logo">
+			<img src="style/logo/vk-logo.png" alt="vk-logo" height="80px" width="80px">
+		</div>
+		<div class="header-title">
+				To do list
+		</div>
+	</div>
+
+	<div class="board">
+		<form id="todo-form">
+			<input type="text" id="todo-input" placeholder="Enter the task...">
+			<button type="button" class="button">Add task</button>
+		</form>
+	</div>
+
+	<div class="lanes">
+		<div class="swim-lane" id="todo-lane-1">
+			<h3 class="heading">To do</h3>
+		</div>
+
+		<div class="swim-lane" id="todo-lane-2">
+			<h3 class="heading">In progress</h3>
+		</div>
+
+		<div class="swim-lane" id="todo-lane-3">
+			<h3 class="heading">Done</h3>
+			<!-- <p class="task" draggable="true">Get progressing</p> -->
+		</div>
+	</div>
+
+
+	<script src="script/script.js"></script>
+</body>
+</html>

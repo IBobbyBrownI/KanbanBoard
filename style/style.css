@@ -1,0 +1,166 @@
+body {
+	margin: 0;
+	padding: 0;
+
+	overflow: hidden;
+
+	font-family:'Times New Roman', Times, serif;
+	box-sizing: border-box; 
+
+	background: linear-gradient(90deg, rgb(204, 184, 148), rgb(159, 118, 206));
+}
+
+.header {
+	height: 25px;
+	width: 100%;
+
+	background-color: rgba(255, 255, 255, 0.3);
+
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	padding: 15px 15px;
+}
+
+.header-title {
+	font-family: 'Pacifico';
+	font-size: 25px;
+	color:black;
+	text-align: center;
+
+	padding-right: 100px;
+}
+
+.board {
+	width: 100%;
+}
+
+#todo-form {
+	padding: 32px, 32px, 0;
+}
+
+#todo-form input {
+	padding: 12px;
+	margin-right: 12px;
+	width: 225px;
+
+	border-radius: 10px;
+	border: none;
+
+	box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.25);
+	background: white;
+
+	font-size: 14px;
+	outline: none;
+}
+
+/* #todo-form button {
+	padding: 12px 32px;
+
+	border-radius: 10px;
+	border: none;
+
+	box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.25);
+	background: white;
+	color: black;
+
+	font-weight: bold;
+	font-size: 14px;
+	cursor: pointer;
+} */
+
+#todo-form button {
+	padding: 12px 32px;
+
+	border-radius: 10px;
+	border: none;
+
+	box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.25);
+	background: white;
+	color: black;
+
+	font-weight: bold;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.lanes {
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 16px;
+
+	padding: 24px 32px;
+
+	height: 100%;
+}
+
+
+
+.heading {
+	font-size: 22px;
+	font-weight: bold;
+	margin-bottom: 8px;
+}
+
+.swim-lane {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+
+	background: white;
+	box-shadow: 0px, 5px, 15px rgba(0, 0, 0, 0.25);
+
+	padding: 12px;
+	border-radius: 10px;
+	width: 225px;
+	min-height: 120px;
+
+	flex-shrink: 0;
+}
+
+.task {
+	background: white;
+	color: black;
+	box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.25);
+
+	padding: 12px;
+	border-radius: 10px;
+
+	font-size: 16px;
+	cursor: pointer;
+
+	transition: 0.8s;
+}
+
+.activeElement {
+	background: rgb(180, 180, 180);
+	box-shadow: 0px 5px 15px rgba(0, 0, 0, 2);
+}
+
+/* .notActiveElement {
+	background: white;
+} */
+
+.blockButton {
+	display: none;
+	border-radius: 10px;
+	border: none;
+
+	box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.25);
+	background: rgb(210, 210, 210);
+	color: black;
+
+	font-size: 14px;
+	cursor: pointer;
+}
+
+#todo-lane-3 div {
+	text-decoration: line-through;
+	/* background-color: rgb(132, 197, 89) */
+}
+
+.board {
+	margin: 100px;
+}
