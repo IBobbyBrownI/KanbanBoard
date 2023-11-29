@@ -1,45 +1,91 @@
-let inputText = document.querySelector("#todo-input");
+let inputText = document.querySelector("#todo-input-1");
+let inputEstimation = document.querySelector("#todo-input-2");
 let button = document.querySelector("button");
 const tasksList = document.querySelectorAll(".swim-lane");
 const toDoBlock = document.querySelector('#todo-lane-1');
 let blockButton = document.querySelector(".blockButton");
 let activeElement;
 let columnToInsert;
+let editedTask = null;
 
-let tasks = [{
-	name: "Sam",
-	status: 0,
-	id: 1,
-}];
+let tasks = [
+	// {
+	// name: "Sam",
+	// estimation: 1,
+	// status: 0,
+	// id: 1,
+	// }
+];
+
+let data = localStorage.getItem('taskBlockList')
+// let taskBlockList = []
+
+console.log("data: ", data)
+
+if(data) {
+	tasks = JSON.parse(data)
+}
+
+// for (const iterator of taskBlockList) {
+// 	createTaskBlock(iterator)
+// }
+
+// console.log("taskBlockList: ", taskBlockList)
 
 console.log("console is working");
 
 button.onclick = function() {
 
+	if(!editedTask) {
 	console.log("click is working");
+
+	console.log(...tasks.map(a => a.id))
 
 	let taskObj = {
 		name: inputText.value,
+		estimation: inputEstimation.value,
 		status: 0,
-		id: (Math.max(tasks.map((a) => a.id )) || 0) + 1 //пребирает и возвращает новое значение
+		id: tasks.length ? Math.max(...tasks.map((a) => a.id )) + 1 : 1//пребирает и возвращает новое значение
+	}
+
+	if(!taskObj.name) {
+		alert("Undefind task input, task = Unnamed")	
+		taskObj.name = "Unnamed";	
+	}
+
+	if (!taskObj.estimation) {
+		alert("Undefind Estimation input, estimation = 0")
+		taskObj.estimation = 0;
 	}
 
 	console.log("name:", taskObj.name);
+	console.log("estimation:", taskObj.estimation);
 	console.log(taskObj);
 
-	tasks.push(taskObj)
+	// tasks.push(taskObj)
 	console.log(tasks)
 
 	const taskBlock = createTaskBlock(taskObj);
 	toDoBlock.appendChild(taskBlock);
-	// document.getElementById('#todo-input').value = 'Enter the task...';
 
-	const value = document.getElementById("todo-input");
+	tasks.push(taskObj)
+	localStorage.setItem('taskBlockList', JSON.stringify(tasks))
+
+	const value = document.getElementById("todo-input-1");
+	const value2 = document.getElementById("todo-input-2");
 	
 	if(value) {
-		value.value ='';
+		value.value = '';
 	}
+	if(value2) {
+		value2.value = '';
+	}
+} else {
+	//сохранение редактируемого (найти элементы, схранить в ls)
+}
 };
+
+// button.onclick = createTask;
 
 console.log(tasksList)
 
@@ -56,13 +102,27 @@ function createTaskBlock(task) {
 
 	let taskBlock = document.createElement('div');
 
+	let d = document.createElement('textarea'); 
+	d.classList.add("description")
+	d.placeholder = "Type description"
+
 	let a = document.createElement('button');
-	a.textContent = "<- left";
+	a.textContent = "editButton";
+	a.onClick = function() {
+		editedTask = task;
+		//set input values...
+	}
 	a.classList.add("blockButton");
 
 	let b = document.createElement('button');
 	b.textContent = "right ->";
 	b.classList.add("blockButton");
+
+
+
+	let e = document.createElement('div')
+	e.classList.add("estimation")
+	e.textContent = "Estimation: " + task.estimation;
 
 	taskBlock.textContent = task.name
 	taskBlock.className = 'task';
@@ -89,6 +149,8 @@ function createTaskBlock(task) {
 
 	taskBlock.appendChild(a);
 	taskBlock.appendChild(b);
+	taskBlock.appendChild(d);
+	taskBlock.appendChild(e);
 	return taskBlock;
 
 }
@@ -128,9 +190,11 @@ document.addEventListener("keydown", (event) => {
 // ------------------------- Second way ------------------------- // 
 	let value = 1;
 	if (parentId === 'todo-lane-'+value) {
-		columnToInsert = document.querySelector('#todo-lane-'+(value+1))
+		columnToInsert = document.querySelector('#todo-lane-'+(value+1));
 	} else if (parentId === 'todo-lane-'+(value+1)) {
 		columnToInsert = document.querySelector('#todo-lane-'+(value+2));
+	} else if (parentId === 'todo-lane-'+(value+2)) {
+		columnToInsert = document.querySelector('#todo-lane-'+(value+3));
 	}
 
     columnToInsert.appendChild(activeElement);
@@ -146,12 +210,11 @@ document.addEventListener("keydown", (event) => {
 	  const parent = activeElement.parentElement;
   
 	  let parentId = activeElement.parentNode.id // geting parentId
-  
-	  console.log(parentId)// print parentId
-  
+    
   // ------------------------- First way ------------------------- // 
-  
-	  if(parentId === 'todo-lane-3') {
+	  if(parentId === 'todo-lane-4') {
+		columnToInsert = document.querySelector('#todo-lane-3')
+	  } else if(parentId === 'todo-lane-3') {
 	  	columnToInsert = document.querySelector('#todo-lane-2');
 	  	// console.log('Column To Insert: ', columnToInsert)
 	  } else if (parentId === 'todo-lane-2') {

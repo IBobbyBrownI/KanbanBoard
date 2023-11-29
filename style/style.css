@@ -2,7 +2,8 @@ body {
 	margin: 0;
 	padding: 0;
 
-	overflow: hidden;
+	/* overflow: hidden; */
+	overflow-x: hidden;
 
 	font-family:'Times New Roman', Times, serif;
 	box-sizing: border-box; 
@@ -85,6 +86,28 @@ body {
 	cursor: pointer;
 }
 
+.description {
+	padding: 5px;
+	
+	background: rgb(230, 230, 230);
+
+	border-radius: 10px;
+	border-style: solid;
+	border-color: rgb(204, 184, 148);
+
+	width: 100%;
+	max-width: 200px;
+	height: 80px;
+
+	box-sizing: border-box;
+}
+
+.estimation {
+	padding: 5px;
+	font-size: 12px;
+	font-weight: bold;
+}
+
 .lanes {
 	display: flex;
 	align-items: flex-start;
@@ -115,8 +138,10 @@ body {
 	padding: 12px;
 	border-radius: 10px;
 	width: 225px;
+	max-width: 225px;
 	min-height: 120px;
 
+	/* overflow: auto; */
 	flex-shrink: 0;
 }
 
@@ -156,7 +181,7 @@ body {
 	cursor: pointer;
 }
 
-#todo-lane-3 div {
+#todo-lane-4 div {
 	text-decoration: line-through;
 	/* background-color: rgb(132, 197, 89) */
 }
