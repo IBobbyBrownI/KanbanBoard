@@ -1,6 +1,8 @@
 let inputText = document.querySelector("#todo-input-1");
 let inputEstimation = document.querySelector("#todo-input-2");
-let button = document.querySelector("button");
+let inputDescription = document.querySelector("#todo-input-3")
+let button = document.querySelector(".button");
+let cancelButton = document.querySelector(".cancelButton")
 const tasksList = document.querySelectorAll(".swim-lane");
 const toDoBlock = document.querySelector('#todo-lane-1');
 let blockButton = document.querySelector(".blockButton");
@@ -8,29 +10,15 @@ let activeElement;
 let columnToInsert;
 let editedTask = null;
 
-let tasks = [
-	// {
-	// name: "Sam",
-	// estimation: 1,
-	// status: 0,
-	// id: 1,
-	// }
-];
+let tasks = [];
 
 let data = localStorage.getItem('taskBlockList')
-// let taskBlockList = []
 
 console.log("data: ", data)
 
 if(data) {
 	tasks = JSON.parse(data)
 }
-
-// for (const iterator of taskBlockList) {
-// 	createTaskBlock(iterator)
-// }
-
-// console.log("taskBlockList: ", taskBlockList)
 
 console.log("console is working");
 
@@ -44,6 +32,7 @@ button.onclick = function() {
 	let taskObj = {
 		name: inputText.value,
 		estimation: inputEstimation.value,
+		description: inputDescription.value,
 		status: 0,
 		id: tasks.length ? Math.max(...tasks.map((a) => a.id )) + 1 : 1//пребирает и возвращает новое значение
 	}
@@ -62,7 +51,6 @@ button.onclick = function() {
 	console.log("estimation:", taskObj.estimation);
 	console.log(taskObj);
 
-	// tasks.push(taskObj)
 	console.log(tasks)
 
 	const taskBlock = createTaskBlock(taskObj);
@@ -73,6 +61,7 @@ button.onclick = function() {
 
 	const value = document.getElementById("todo-input-1");
 	const value2 = document.getElementById("todo-input-2");
+	const value3 = document.getElementById("todo-input-3");
 	
 	if(value) {
 		value.value = '';
@@ -80,12 +69,50 @@ button.onclick = function() {
 	if(value2) {
 		value2.value = '';
 	}
+	if(value3) {
+		value3.value = '';
+	}
 } else {
+
 	//сохранение редактируемого (найти элементы, схранить в ls)
+	let data = localStorage.getItem('taskBlockList');
+	let tasksFromLocalStorage = JSON.parse(data);
+
+	let selectedTaskId = editedTask.id;
+	console.log("selectedTaskId: ", selectedTaskId)
+
+	let selectedTask = tasksFromLocalStorage.find(task => task.id === selectedTaskId);
+	console.log("SelectedTask: ", selectedTask)
+
+	if(selectedTask) {
+		let a = document.getElementById('todo-input-1')
+		let b = document.getElementById('todo-input-2')
+		let c = document.getElementById('todo-input-3')
+
+		selectedTask.name = a.value;
+		selectedTask.estimation = b.value;
+		selectedTask.description = c.value;
+		
+		if(a) {
+			a.value = '';
+		}
+		if(b) {
+			b.value = '';
+		}
+		if(c) {
+			c.value = '';
+		}
+	}
+
+	localStorage.setItem('taskBlockList', JSON.stringify(tasksFromLocalStorage));
+	console.log("tasksFromLocalStorage: ", tasksFromLocalStorage)
+
+	button.textContent = "Add"
+	cancelButton.style.display = 'none'
+	editedTask = null;
+	location.reload()
 }
 };
-
-// button.onclick = createTask;
 
 console.log(tasksList)
 
@@ -99,30 +126,10 @@ tasksList.forEach((box, index) => {
 });
 
 function createTaskBlock(task) {
-
+	
 	let taskBlock = document.createElement('div');
 
-	let d = document.createElement('textarea'); 
-	d.classList.add("description")
-	d.placeholder = "Type description"
-
-	let a = document.createElement('button');
-	a.textContent = "editButton";
-	a.onClick = function() {
-		editedTask = task;
-		//set input values...
-	}
-	a.classList.add("blockButton");
-
-	let b = document.createElement('button');
-	b.textContent = "right ->";
-	b.classList.add("blockButton");
-
-
-
-	let e = document.createElement('div')
-	e.classList.add("estimation")
-	e.textContent = "Estimation: " + task.estimation;
+	// ---------------------------- Task Block ----------------------------
 
 	taskBlock.textContent = task.name
 	taskBlock.className = 'task';
@@ -145,19 +152,113 @@ function createTaskBlock(task) {
 			activeElement = event.target
 			activeElement.classList.add("activeElement")
 		}
-	  });
+	});
 
-	taskBlock.appendChild(a);
-	taskBlock.appendChild(b);
-	taskBlock.appendChild(d);
-	taskBlock.appendChild(e);
+	// ---------------------------- Description ----------------------------
+
+	let descriptionP = document.createElement('p');	
+	descriptionP.classList.add("description")
+	descriptionP.textContent = "Description: "
+	if(task.description) {
+		descriptionP.textContent = "Description: " + task.description
+	}
+
+	// ---------------------------- Estimation ----------------------------
+
+	let estimationDiv = document.createElement('div')
+	estimationDiv.classList.add("estimation")
+	estimationDiv.textContent = "Estimation: " + task.estimation;
+
+	// ---------------------------- Edit Button ----------------------------
+
+	let editButton = document.createElement('button');
+	editButton.textContent = "Edit";
+	editButton.classList.add("blockButton")
+	editButton.addEventListener('click', buttonClick);
+
+	// ---------------------------- Delete Button ----------------------------
+
+	let deleteButton = document.createElement('button');
+	deleteButton.textContent = "Delete";
+	deleteButton.classList.add("blockButton")
+	deleteButton.addEventListener('click', function() {
+
+	taskBlock.remove();
+
+	let taskIndex = tasks.findIndex(t => t.id === task.id);
+	if (taskIndex !== -1) {
+    	tasks.splice(taskIndex, 1); //Метод splice удаляет или добавляет элементы в массив. Можно только удалять элементы, только добавлять или делать и то и другое одновременно.
+		localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+	}
+});
+
+
+	// --------------------- Setting values in inputs ---------------------
+	
+	function buttonClick() {
+		editedTask = task;
+
+		// change addButton in "save"
+		document.getElementById('addButton').textContent = "Save"
+
+		// set input values...
+		let a = document.getElementById('todo-input-1');
+		a.value = editedTask.name;
+		console.log("setting name!", a.value)
+		document.getElementById('todo-input-1').value = a.value;
+		cancelButton.style.display = "initial"
+
+		let b = document.getElementById('todo-input-2');
+		b.value = editedTask.estimation;
+		console.log("setting estimation!", b.value)
+		document.getElementById('todo-input-2').value = b.value;
+
+		let c = document.getElementById('todo-input-3');
+		c.value = editedTask.description;
+		console.log("setting description!", c.value)
+
+		console.log("Edited task before cancel: ", editedTask)
+	}
+
+	// ---------------------------- Append Childs ----------------------------
+
+	taskBlock.appendChild(descriptionP);
+	taskBlock.appendChild(estimationDiv);
+	taskBlock.appendChild(editButton);
+	taskBlock.appendChild(deleteButton);
+
 	return taskBlock;
-
 }
+
+	cancelButton.addEventListener('click', cancelClick);
+
+	function cancelClick() {
+
+		let cancelButton = document.getElementById('cancelButton');
+
+		let input1 = document.getElementById('todo-input-1');
+		let input2 = document.getElementById('todo-input-2');
+		let input3 = document.getElementById('todo-input-3');
+
+		if(input1) {
+			input1.value = '';
+		}
+		if(input2) {
+			input2.value = '';
+		}
+		if(input3) {
+			input3.value = '';
+		}
+
+		document.getElementById('addButton').textContent = "Add"
+		cancelButton.style.display = 'none';
+		editedTask = null;
+		console.log("Edited task = ",editedTask)
+	}
 
 document.addEventListener('click', (event) => {
 	if(!activeElement){
-		return;
+		return;	
 	}
   activeElement.classList.remove("activeElement")
   activeElement = null;
@@ -177,17 +278,6 @@ document.addEventListener("keydown", (event) => {
 
 // ------------------------- First way ------------------------- // 
 
-	// if(parentId === 'todo-lane-1') {
-	// 	columnToInsert = document.querySelector('#todo-lane-2');
-	// 	// console.log('Column To Insert: ', columnToInsert)
-	// } else if (parentId === 'todo-lane-2') {
-	// 	// console.log('Column 2 To Insert: ', columnToInsert)
-	// 	columnToInsert = document.querySelector('#todo-lane-3');
-	// } else if (parentId === 'todo-lane-3') {
-	// 	columnToInsert = document.querySelector('#todo-lane-1');
-	// }
-
-// ------------------------- Second way ------------------------- // 
 	let value = 1;
 	if (parentId === 'todo-lane-'+value) {
 		columnToInsert = document.querySelector('#todo-lane-'+(value+1));
@@ -224,104 +314,7 @@ document.addEventListener("keydown", (event) => {
 	  	columnToInsert = document.querySelector('#todo-lane-1');
 	  }
   
-  // ------------------------- Second way ------------------------- // 
-	//   let value = 1;
-	//   if (parentId === 'todo-lane-'+(value+2)) {
-	// 	  columnToInsert = document.querySelector('#todo-lane-'+(value-1))
-	//   } else if (parentId === 'todo-lane-'+(value+1)) {
-	// 	  columnToInsert = document.querySelector('#todo-lane-'+(value-1));
-	//   }
-  
 	  columnToInsert.appendChild(activeElement);
 	}
   
   });
-
-
-
-
-
-// document.addEventListener('keydown', (event) => {
-// 	console.log(event.keyCode)
-// });
-
-
-
-//Кликая на элемент, добавляем класс эктив. Внутри лиссенара на "addEventListener('keydown')..." строке, проверяем: Если нажата одна из кнопок направления и есть элемент с классом active, тогда выполняется действие перемещения (вверх вниз, вправо влево.) 
-// как перекинуть: найти элемент в массиве (найти элемент в дереве элементов и найти его родителя (найти элемент в блоке в котором он есть), но его сохраняю в переменную)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// const tasksList = document.querySelectorAll(".swim-lane")
-
-// const tasks = [{
-// 	id: 1,
-// 	name: 'Make calculator',
-// 	status: 0,
-// 	estimation: 4
-//   },{
-// 	id: 2,
-// 	name: 'Make sandwich',
-// 	status: 0,
-// 	estimation: 3
-//   },{
-// 	id: 3,
-// 	name: 'Make pizza',
-// 	status: 0,
-// 	estimation: 4
-//   },{
-// 	id: 4,
-// 	name: 'watch Stranger Things',
-// 	status: 1,
-// 	estimation: 3
-//   },{	
-// 	id: 4,
-// 	name: 'learn js',
-//   	status: 1,
-//   	estimation: 3
-// }];
-  
-//   // [todo{}, inprogres{}, done{}]
-
-//   function addTask() {
-
-//   }
-  
-//   tasksList.forEach((d, index) => { //перебераем большиме блоки
-// 	const selectedTasks = tasks.filter((t)=> t.status === index); //фильтруем таски по статусу (которые соответствуют блоку)
-	
-// 	selectedTasks.forEach((task)=> { // Перебераем все таски относящиеся к этому статусу
-// 	  const taskBlock = getTaskBlock(task); //создаем блоки соттветствующие таску
-	  
-// 	  d.appendChild(taskBlock); //всталяем блоки в родительский контейнер (зона с тасками (блок To do, in pr....))
-// 	})
-// });
-
-// 	function getTaskBlock(task){ //функция, которая создает блоки тасок
-// 		const taskBlock = document.createElement('p'); //Создает элемент
-// 		taskBlock.id = task.id; //сетает айди
-// 		taskBlock.className = 'task'; //сетает класс
-// 		//taskBlock.draggable = true // сетает свойтсво draggable
-// 		taskBlock.textContent = task.name //контент
-
-// 		// taskBlock.addEventListener("dragstart", () => { //добавляем событие
-// 		// 	taskBlock.classList.add("is-dragging"); //добавлем класс когда событие сробатывает
-// 		// });
-// 		// taskBlock.addEventListener("dragend", () => { //добавляем событие
-// 		// 	taskBlock.classList.remove("is-dragging"); //убираем класс когда событие сробатывает
-// 		// });
-
-// 		return taskBlock;
-// 	}
