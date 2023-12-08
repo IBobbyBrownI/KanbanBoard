@@ -2,11 +2,10 @@ body {
 	margin: 0;
 	padding: 0;
 
-	/* overflow: hidden; */
 	overflow-x: hidden;
 
-	font-family:'Times New Roman', Times, serif;
-	box-sizing: border-box; 
+	font-family: 'Times New Roman', Times, serif;
+	box-sizing: border-box;
 
 	background: linear-gradient(90deg, rgb(204, 184, 148), rgb(159, 118, 206));
 }
@@ -27,7 +26,7 @@ body {
 .header-title {
 	font-family: 'Pacifico';
 	font-size: 25px;
-	color:black;
+	color: black;
 	text-align: center;
 
 	padding-right: 100px;
@@ -56,21 +55,6 @@ body {
 	outline: none;
 }
 
-/* #todo-form button {
-	padding: 12px 32px;
-
-	border-radius: 10px;
-	border: none;
-
-	box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.25);
-	background: white;
-	color: black;
-
-	font-weight: bold;
-	font-size: 14px;
-	cursor: pointer;
-} */
-
 #todo-form button {
 	padding: 12px 32px;
 
@@ -88,7 +72,7 @@ body {
 
 .description {
 	padding: 5px;
-	
+
 	background: rgb(230, 230, 230);
 
 	border-radius: 10px;
@@ -156,7 +140,6 @@ body {
 	max-width: 225px;
 	min-height: 120px;
 
-	/* overflow: auto; */
 	flex-shrink: 0;
 }
 
@@ -179,12 +162,7 @@ body {
 	box-shadow: 0px 5px 15px rgba(0, 0, 0, 2);
 }
 
-/* .notActiveElement {
-	background: white;
-} */
-
 .blockButton {
-	/* display: none; */
 	border-radius: 10px;
 	border: none;
 
@@ -198,7 +176,6 @@ body {
 
 #todo-lane-4 div {
 	text-decoration: line-through;
-	/* background-color: rgb(132, 197, 89) */
 }
 
 .board {
