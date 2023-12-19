@@ -1,7 +1,7 @@
 let inputText = document.querySelector("#todo-input-1");
 let inputEstimation = document.querySelector("#todo-input-2");
 let inputDescription = document.querySelector("#todo-input-3")
-let button = document.querySelector(".button");
+let addTaskbutton = document.querySelector(".button");
 let cancelButton = document.querySelector(".cancelButton")
 const tasksList = document.querySelectorAll(".swim-lane");
 const toDoBlock = document.querySelector('#todo-lane-1');
@@ -14,8 +14,16 @@ let tasks = [];
 
 let data = localStorage.getItem('taskBlockList')
 
-if (data) {
-	tasks = JSON.parse(data)
+try {
+	if (data) {
+		tasks = JSON.parse(data)
+	}
+} catch (error) {
+	alert("can not get data from local storage...")
+}
+
+function pageReload() {
+	location.reload();
 }
 
 function clearInputs() {
@@ -30,7 +38,7 @@ function clearInputs() {
 	}
 }
 
-button.onclick = function () {
+addTaskbutton.onclick = function () {
 
 	if (!editedTask) {
 
@@ -43,12 +51,11 @@ button.onclick = function () {
 		}
 
 		if (!taskObj.name) {
-			alert("Undefind task input, task = Unnamed")
-			taskObj.name = "Unnamed";
+			alert("Name is required!!!")
+			return;
 		}
 
 		if (!taskObj.estimation) {
-			alert("Undefind Estimation input, estimation = 0")
 			taskObj.estimation = null;
 		}
 
@@ -60,29 +67,22 @@ button.onclick = function () {
 
 		clearInputs();
 	} else {
+		let selectedTask = tasks.find(task => task.id === editedTask.id);
 
-		let data = localStorage.getItem('taskBlockList');
-		let tasksFromLocalStorage = JSON.parse(data);
-
-		let selectedTaskId = editedTask.id;
-
-		let selectedTask = tasksFromLocalStorage.find(task => task.id === selectedTaskId);
-
+		// проверка на постую строку сделать
 		if (selectedTask) {
 			selectedTask.name = inputText.value;
 			selectedTask.estimation = inputEstimation.value;
 			selectedTask.description = inputDescription.value;
 
-			clearInputs();
+		} else {
+			alert("selected task is not finded...");
+			return;
 		}
 
-		localStorage.setItem('taskBlockList', JSON.stringify(tasksFromLocalStorage));
-		console.log("tasksFromLocalStorage: ", tasksFromLocalStorage)
+		localStorage.setItem('taskBlockList', JSON.stringify(tasks));
 
-		button.textContent = "Add"
-		cancelButton.style.display = 'none'
-		editedTask = null;
-		location.reload()
+		// pageReload();
 	}
 };
 
@@ -153,10 +153,15 @@ function createTaskBlock(task) {
 	deleteButton.classList.add("blockButton")
 	deleteButton.addEventListener('click', function () {
 
-		taskBlock.remove();
+		if (confirm("cancel?")) {
 
-		tasks = tasks.filter((t) => t.id !== task.id)
-		localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+			taskBlock.remove();
+
+			tasks = tasks.filter((t) => t.id !== task.id)
+			localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+		} else {
+			return;
+		}
 	});
 
 
@@ -190,9 +195,8 @@ function createTaskBlock(task) {
 cancelButton.addEventListener('click', cancelClick);
 
 function cancelClick() {
-
-	let cancelButton = document.getElementById('cancelButton');
-
+// const cancelClick = ()=>{
+	// вынести 3 строчки в другую функцию switchToAddMode
 	document.getElementById('addButton').textContent = "Add"
 	cancelButton.style.display = 'none';
 	editedTask = null;
@@ -206,47 +210,30 @@ document.addEventListener('click', (event) => {
 	}
 	activeElement.classList.remove("activeElement")
 	activeElement = null;
-
 });
+
+
 
 document.addEventListener("keydown", (event) => {
 
 	if (event.keyCode === 39 && activeElement) {
-		const parent = activeElement.parentElement;
 
 		let parentId = activeElement.parentNode.id
 
-		if (parentId === 'todo-lane-1') {
-			columnToInsert = document.querySelector('#todo-lane-2');
-		} else if (parentId === 'todo-lane-2') {
-			columnToInsert = document.querySelector('#todo-lane-3');
-		} else if (parentId === 'todo-lane-3') {
-			columnToInsert = document.querySelector('#todo-lane-4');
-		} else if (parentId === 'todo-lane-4') {
-			return
-		}
+		columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] + 1));
+		if (!columnToInsert) return;
+		columnToInsert.appendChild(activeElement);
 	}
-
-	columnToInsert.appendChild(activeElement);
 });
 
 document.addEventListener("keydown", (event) => {
 
 	if (event.keyCode === 37 && activeElement) {
-		const parent = activeElement.parentElement;
 
 		let parentId = activeElement.parentNode.id
 
-		if (parentId === 'todo-lane-4') {
-			columnToInsert = document.querySelector('#todo-lane-3')
-		} else if (parentId === 'todo-lane-3') {
-			columnToInsert = document.querySelector('#todo-lane-2');
-		} else if (parentId === 'todo-lane-2') {
-			columnToInsert = document.querySelector('#todo-lane-1');
-		} else if (parentId === 'todo-lane-1') {
-			return
-		}
-
+		columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] - 1));
+		if (!columnToInsert) return;
 		columnToInsert.appendChild(activeElement);
 	}
 
