@@ -15,226 +15,258 @@ let tasks = [];
 let data = localStorage.getItem('taskBlockList')
 
 try {
-	if (data) {
-		tasks = JSON.parse(data)
-	}
+  if (data) {
+    tasks = JSON.parse(data)
+  }
 } catch (error) {
-	alert("can not get data from local storage...")
+  alert("can not get data from local storage...")
 }
 
 function pageReload() {
-	location.reload();
+  location.reload();
 }
 
 function clearInputs() {
-	if (inputText) {
-		inputText.value = '';
-	}
-	if (inputEstimation) {
-		inputEstimation.value = '';
-	}
-	if (inputDescription) {
-		inputDescription.value = '';
-	}
+  if (inputText) {
+    inputText.value = '';
+  }
+  if (inputEstimation) {
+    inputEstimation.value = '';
+  }
+  if (inputDescription) {
+    inputDescription.value = '';
+  }
 }
 
 addTaskbutton.onclick = function () {
 
-	if (!editedTask) {
+  if (!editedTask) {
 
-		let taskObj = {
-			name: inputText.value,
-			estimation: inputEstimation.value,
-			description: inputDescription.value,
-			status: 0,
-			id: tasks.length ? Math.max(...tasks.map((a) => a.id)) + 1 : 1
-		}
+    let taskObj = {
+      name: inputText.value,
+      estimation: inputEstimation.value,
+      description: inputDescription.value,
+      status: 0,
+      id: tasks.length ? Math.max(...tasks.map((a) => a.id)) + 1 : 1
+    }
 
-		if (!taskObj.name) {
-			alert("Name is required!!!")
-			return;
-		}
+    if (!taskObj.name) {
+      alert("Name is required!!!")
+      return;
+    }
 
-		if (!taskObj.estimation) {
-			taskObj.estimation = null;
-		}
+    if (!taskObj.estimation) {
+      taskObj.estimation = null;
+    }
 
-		const taskBlock = createTaskBlock(taskObj);
-		toDoBlock.appendChild(taskBlock);
+    const taskBlock = createTaskBlock(taskObj);
+    toDoBlock.appendChild(taskBlock);
 
-		tasks.push(taskObj)
-		localStorage.setItem('taskBlockList', JSON.stringify(tasks))
+    tasks.push(taskObj)
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks))
 
-		clearInputs();
-	} else {
-		let selectedTask = tasks.find(task => task.id === editedTask.id);
+    clearInputs();
+  } else {
+    let selectedTask = tasks.find(task => task.id === editedTask.id);
 
-		// проверка на постую строку сделать
-		if (selectedTask) {
-			selectedTask.name = inputText.value;
-			selectedTask.estimation = inputEstimation.value;
-			selectedTask.description = inputDescription.value;
+    if (selectedTask) {
+      if (!inputText.value.trim() || !inputEstimation.value ||inputEstimation.value <= 0)
+      	{
+       	 alert("invalid input");
+        	return;
+      }
+      selectedTask.name = inputText.value;
+      selectedTask.estimation = inputEstimation.value;
+      selectedTask.description = inputDescription.value;
+    } else {
+      alert("selected task is not finded...");
+      return;
+    }
 
-		} else {
-			alert("selected task is not finded...");
-			return;
-		}
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+    // tasks += selectedTask;
 
-		localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+    const taskNameBlock = document.getElementById("task_name_" + selectedTask.id)
+    const taskDescriptionBlock = document.getElementById("task_description_" + selectedTask.id)
+    const taskEstimationBlock = document.getElementById("task_estimation_" + selectedTask.id)
+    taskNameBlock.textContent = inputText.value;
+    taskDescriptionBlock.textContent = inputEstimation.value;
+    taskEstimationBlock.textContent = inputDescription.value;
 
-		// pageReload();
-	}
+  }
 };
 
 tasksList.forEach((box, index) => {
-	let selectedTasks = tasks.filter((task) => task.status === index)
-	selectedTasks.forEach((task) => {
-		taskBlock = createTaskBlock(task);
+  let selectedTasks = tasks.filter((task) => task.status === index)
+  selectedTasks.forEach((task) => {
+    taskBlock = createTaskBlock(task);
 
-		box.appendChild(taskBlock);
-	})
+    box.appendChild(taskBlock);
+  })
 });
 
 function createTaskBlock(task) {
 
-	let taskBlock = document.createElement('div');
+  let taskBlock = document.createElement('div');
 
-	// ---------------------------- Task Block ----------------------------
+  // ---------------------------- Task Block ----------------------------
 
-	taskBlock.textContent = task.name
-	taskBlock.className = 'task';
-	taskBlock.id = task.id;
+  // taskBlock.textContent = task.name
+  taskBlock.className = 'task';
+  taskBlock.id = 'task_' + task.id;
 
-	taskBlock.addEventListener('click', (event) => {
-		event.stopPropagation();
+  taskBlock.addEventListener('click', (event) => {
+    event.stopPropagation();
 
-		const currentAE = document.querySelector(".activeElement")
+    const currentAE = document.querySelector(".activeElement")
 
-		if (currentAE) {
-			currentAE.classList.remove("activeElement");
-		}
+    if (currentAE) {
+      currentAE.classList.remove("activeElement");
+    }
 
-		if (activeElement === event.target) {
-			activeElement.classList.remove("activeElement")
-			activeElement = null;
-		}
-		else if (taskBlock === event.target) {
-			activeElement = event.target
-			activeElement.classList.add("activeElement")
-		}
-	});
+    if (activeElement === event.target) {
+      activeElement.classList.remove("activeElement")
+      activeElement = null;
+    } else if (taskBlock === event.target) {
+      activeElement = event.target
+      activeElement.classList.add("activeElement")
+    }
+  });
 
-	// ---------------------------- Description ----------------------------
+  // ---------------------------- Name ----------------------------
 
-	let descriptionP = document.createElement('p');
-	descriptionP.classList.add("description")
-	descriptionP.textContent = "Description: "
-	if (task.description) {
-		descriptionP.textContent = "Description: " + task.description
-	}
-
-	// ---------------------------- Estimation ----------------------------
-
-	let estimationDiv = document.createElement('div')
-	estimationDiv.classList.add("estimation")
-	estimationDiv.textContent = "Estimation: " + task.estimation;
-
-	// ---------------------------- Edit Button ----------------------------
-
-	let editButton = document.createElement('button');
-	editButton.textContent = "Edit";
-	editButton.classList.add("blockButton")
-	editButton.addEventListener('click', buttonClick);
-
-	// ---------------------------- Delete Button ----------------------------
-
-	let deleteButton = document.createElement('button');
-	deleteButton.textContent = "Delete";
-	deleteButton.classList.add("blockButton")
-	deleteButton.addEventListener('click', function () {
-
-		if (confirm("cancel?")) {
-
-			taskBlock.remove();
-
-			tasks = tasks.filter((t) => t.id !== task.id)
-			localStorage.setItem('taskBlockList', JSON.stringify(tasks));
-		} else {
-			return;
-		}
-	});
+  const nameElement = document.createElement('span');
+  nameElement.placeholder = "Name"
+  nameElement.id = 'task_name_' + task.id;
+  nameElement.textContent = task.name;
 
 
-	// --------------------- Setting values in inputs ---------------------
+  // ---------------------------- Description ----------------------------
 
-	function buttonClick() {
-		editedTask = task;
+  let descriptionP = document.createElement('p');
+  descriptionP.id = 'task_description_' + task.id;
+  descriptionP.classList.add("description")
+  descriptionP.placeholder = "Description"
 
-		document.getElementById('addButton').textContent = "Save"
+  if (task.description) {
+    descriptionP.textContent = task.description
+  }
 
-		inputText.value = editedTask.name
-		inputText.value = inputText.value
-		cancelButton.style.display = "initial"
+  // ---------------------------- Estimation ----------------------------
 
-		inputEstimation.value = editedTask.estimation;
-		inputEstimation.value = inputEstimation.value;
+  let estimationDiv = document.createElement('div')
+  estimationDiv.id = 'task_estimation_' + task.id;
+  estimationDiv.classList.add("estimation")
+  descriptionP.placeholder = "Estimation"
+  estimationDiv.textContent = task.estimation;
 
-		inputDescription.value = editedTask.description;
-	}
+// ---------------------------- Edit Button ----------------------------
 
-	// ---------------------------- Append Childs ----------------------------
+  let editButton = document.createElement('button');
+  editButton.textContent = "Edit";
+  editButton.classList.add("blockButton")
+  editButton.addEventListener('click', buttonClick);
 
-	taskBlock.appendChild(descriptionP);
-	taskBlock.appendChild(estimationDiv);
-	taskBlock.appendChild(editButton);
-	taskBlock.appendChild(deleteButton);
+  // ---------------------------- Delete Button ----------------------------
 
-	return taskBlock;
+  let deleteButton = document.createElement('button');
+  deleteButton.textContent = "Delete";
+  deleteButton.classList.add("blockButton")
+  deleteButton.addEventListener('click', function () {
+
+    if (confirm("cancel?")) {
+
+      taskBlock.remove();
+
+      tasks = tasks.filter((t) => t.id !== task.id)
+      localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+    } else {
+      return;
+    }
+  });
+
+
+  // --------------------- Setting values in inputs ---------------------
+
+  function buttonClick() {
+    editedTask = task;
+
+    document.getElementById('addButton').textContent = "Save"
+
+    inputText.value = editedTask.name
+    inputText.value = inputText.value
+    cancelButton.style.display = "initial"
+
+    inputEstimation.value = editedTask.estimation;
+    inputEstimation.value = inputEstimation.value;
+
+    inputDescription.value = editedTask.description;
+  }
+
+  // ---------------------------- Append Childs ----------------------------
+
+  taskBlock.appendChild(nameElement);
+  taskBlock.appendChild(descriptionP);
+  taskBlock.appendChild(estimationDiv);
+  taskBlock.appendChild(editButton);
+  taskBlock.appendChild(deleteButton);
+
+  return taskBlock;
 }
 
 cancelButton.addEventListener('click', cancelClick);
 
 function cancelClick() {
-// const cancelClick = ()=>{
-	// вынести 3 строчки в другую функцию switchToAddMode
-	document.getElementById('addButton').textContent = "Add"
-	cancelButton.style.display = 'none';
-	editedTask = null;
+  // const cancelClick = ()=>{
+  // ������� 3 ������� � ������ ������� switchToAddMode
+  document.getElementById('addButton').textContent = "Add"
+  cancelButton.style.display = 'none';
+  editedTask = null;
 
-	clearInputs();
+  clearInputs();
 }
 
 document.addEventListener('click', (event) => {
-	if (!activeElement) {
-		return;
-	}
-	activeElement.classList.remove("activeElement")
-	activeElement = null;
-});
-
-
-
-document.addEventListener("keydown", (event) => {
-
-	if (event.keyCode === 39 && activeElement) {
-
-		let parentId = activeElement.parentNode.id
-
-		columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] + 1));
-		if (!columnToInsert) return;
-		columnToInsert.appendChild(activeElement);
-	}
+  if (!activeElement) {
+    return;
+  }
+  activeElement.classList.remove("activeElement")
+  activeElement = null;
 });
 
 document.addEventListener("keydown", (event) => {
 
-	if (event.keyCode === 37 && activeElement) {
+  if (event.keyCode === 39 && activeElement) {
 
-		let parentId = activeElement.parentNode.id
+    let parentId = activeElement.parentNode.id
 
-		columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] - 1));
-		if (!columnToInsert) return;
-		columnToInsert.appendChild(activeElement);
-	}
+    columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] + 1));
+    if (!columnToInsert) return;
+
+	columnToInsert.appendChild(activeElement);
+
+	const pattern = /(\d+)$/;
+	const id = +activeElement.id.match(pattern)[1];
+
+	console.log("AE: ", id)
+
+	// обновить таску в массиве
+	let  = tasks.find(task => task.id === editedTask.id);
+
+	//записать в локал сторедж
+
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+
+  if (event.keyCode === 37 && activeElement) {
+
+    let parentId = activeElement.parentNode.id
+
+    columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] - 1));
+    if (!columnToInsert) return;
+    columnToInsert.appendChild(activeElement);
+  }
 
 });
