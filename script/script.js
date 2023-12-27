@@ -1,13 +1,11 @@
-let inputText = document.querySelector("#todo-input-1");
-let inputEstimation = document.querySelector("#todo-input-2");
-let inputDescription = document.querySelector("#todo-input-3")
-let addTaskbutton = document.querySelector(".button");
-let cancelButton = document.querySelector(".cancelButton")
+const inputText = document.querySelector("#todo-input-1");
+const inputEstimation = document.querySelector("#todo-input-2");
+const inputDescription = document.querySelector("#todo-input-3")
+const saveTaskButton = document.querySelector(".button");
+const cancelButton = document.querySelector(".cancelButton")
 const tasksList = document.querySelectorAll(".swim-lane");
 const toDoBlock = document.querySelector('#todo-lane-1');
-let blockButton = document.querySelector(".blockButton");
 let activeElement;
-let columnToInsert;
 let editedTask = null;
 
 let tasks = [];
@@ -22,24 +20,16 @@ try {
   alert("can not get data from local storage...")
 }
 
-function pageReload() {
-  location.reload();
-}
+tasksList.forEach((box, index) => {
+  let selectedTasks = tasks.filter((task) => task.status === index)
+  selectedTasks.forEach((task) => {
+    taskBlock = createTaskBlock(task);
 
-function clearInputs() {
-  if (inputText) {
-    inputText.value = '';
-  }
-  if (inputEstimation) {
-    inputEstimation.value = '';
-  }
-  if (inputDescription) {
-    inputDescription.value = '';
-  }
-}
+    box.appendChild(taskBlock);
+  })
+});
 
-addTaskbutton.onclick = function () {
-
+saveTaskButton.onclick = function () {
   if (!editedTask) {
 
     let taskObj = {
@@ -70,40 +60,111 @@ addTaskbutton.onclick = function () {
     let selectedTask = tasks.find(task => task.id === editedTask.id);
 
     if (selectedTask) {
-      if (!inputText.value.trim() || !inputEstimation.value ||inputEstimation.value <= 0)
-      	{
-       	 alert("invalid input");
-        	return;
+
+      // разбить на отдельные сообщения
+      if (!inputText.value.trim() || !inputEstimation.value || inputEstimation.value <= 0) {
+        alert("invalid input");
+        return;
       }
       selectedTask.name = inputText.value;
+      //приведение типов
       selectedTask.estimation = inputEstimation.value;
       selectedTask.description = inputDescription.value;
     } else {
-      alert("selected task is not finded...");
+      alert("selected task is not found...");
       return;
     }
 
     localStorage.setItem('taskBlockList', JSON.stringify(tasks));
-    // tasks += selectedTask;
 
     const taskNameBlock = document.getElementById("task_name_" + selectedTask.id)
     const taskDescriptionBlock = document.getElementById("task_description_" + selectedTask.id)
     const taskEstimationBlock = document.getElementById("task_estimation_" + selectedTask.id)
     taskNameBlock.textContent = inputText.value;
-    taskDescriptionBlock.textContent = inputEstimation.value;
-    taskEstimationBlock.textContent = inputDescription.value;
+    taskDescriptionBlock.textContent = inputDescription.value;
+    taskEstimationBlock.textContent = inputEstimation.value;
 
+    switchMode(null);
   }
 };
 
-tasksList.forEach((box, index) => {
-  let selectedTasks = tasks.filter((task) => task.status === index)
-  selectedTasks.forEach((task) => {
-    taskBlock = createTaskBlock(task);
+cancelButton.addEventListener('click', () => switchMode(null));
 
-    box.appendChild(taskBlock);
-  })
+document.addEventListener('click', (event) => {
+  if (!activeElement) {
+    return;
+  }
+  activeElement.classList.remove("activeElement")
+  activeElement = null;
 });
+
+document.addEventListener("keydown", (event) => {
+
+  if (event.keyCode === 39 && activeElement) {
+
+    let parentId = activeElement.parentNode.id
+
+    let columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] + 1));
+    if (!columnToInsert) return;
+
+    columnToInsert.appendChild(activeElement);
+
+    const pattern = /(\d+)$/;
+    const id = +activeElement.id.match(pattern)[1];
+
+	tasks = tasks.map(t => t.id === id?  { ...t, status: t.status + 1 }: t);
+
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+
+  if (event.keyCode === 37 && activeElement) {
+
+    let parentId = activeElement.parentNode.id
+
+    let columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] - 1));
+    if (!columnToInsert) return;
+    columnToInsert.appendChild(activeElement);
+
+    const pattern = /(\d+)$/;
+    const id = +activeElement.id.match(pattern)[1];
+
+	tasks = tasks.map(t => t.id === id?  { ...t, status: t.status - 1 }: t);
+
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+  }
+});
+
+
+function switchMode(task) {
+  if (task) {
+    editedTask = task;
+
+    document.getElementById('addButton').textContent = "Save"
+
+    inputText.value = editedTask.name
+    inputText.value = inputText.value
+    cancelButton.style.display = "initial"
+    inputEstimation.value = editedTask.estimation;
+    inputEstimation.value = inputEstimation.value;
+    inputDescription.value = editedTask.description;
+
+  } else {
+    document.getElementById('addButton').textContent = "Add Task"
+    cancelButton.style.display = 'none';
+    editedTask = null;
+
+    clearInputs();
+  }
+}
+
+function clearInputs() {
+  inputText.value = '';
+  inputEstimation.value = '';
+  inputDescription.value = '';
+}
 
 function createTaskBlock(task) {
 
@@ -111,7 +172,6 @@ function createTaskBlock(task) {
 
   // ---------------------------- Task Block ----------------------------
 
-  // taskBlock.textContent = task.name
   taskBlock.className = 'task';
   taskBlock.id = 'task_' + task.id;
 
@@ -165,43 +225,23 @@ function createTaskBlock(task) {
   let editButton = document.createElement('button');
   editButton.textContent = "Edit";
   editButton.classList.add("blockButton")
-  editButton.addEventListener('click', buttonClick);
+  editButton.addEventListener('click', () => switchMode(task));
 
   // ---------------------------- Delete Button ----------------------------
 
   let deleteButton = document.createElement('button');
   deleteButton.textContent = "Delete";
   deleteButton.classList.add("blockButton")
-  deleteButton.addEventListener('click', function () {
-
-    if (confirm("cancel?")) {
-
-      taskBlock.remove();
-
-      tasks = tasks.filter((t) => t.id !== task.id)
-      localStorage.setItem('taskBlockList', JSON.stringify(tasks));
-    } else {
+  deleteButton.addEventListener('click', () => {
+    if (!confirm("Are you sure want to delete?"))
       return;
-    }
+
+    taskBlock.remove();
+    tasks = tasks.filter((t) => t.id !== task.id)
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks));
   });
 
 
-  // --------------------- Setting values in inputs ---------------------
-
-  function buttonClick() {
-    editedTask = task;
-
-    document.getElementById('addButton').textContent = "Save"
-
-    inputText.value = editedTask.name
-    inputText.value = inputText.value
-    cancelButton.style.display = "initial"
-
-    inputEstimation.value = editedTask.estimation;
-    inputEstimation.value = inputEstimation.value;
-
-    inputDescription.value = editedTask.description;
-  }
 
   // ---------------------------- Append Childs ----------------------------
 
@@ -213,60 +253,3 @@ function createTaskBlock(task) {
 
   return taskBlock;
 }
-
-cancelButton.addEventListener('click', cancelClick);
-
-function cancelClick() {
-  // const cancelClick = ()=>{
-  // ������� 3 ������� � ������ ������� switchToAddMode
-  document.getElementById('addButton').textContent = "Add"
-  cancelButton.style.display = 'none';
-  editedTask = null;
-
-  clearInputs();
-}
-
-document.addEventListener('click', (event) => {
-  if (!activeElement) {
-    return;
-  }
-  activeElement.classList.remove("activeElement")
-  activeElement = null;
-});
-
-document.addEventListener("keydown", (event) => {
-
-  if (event.keyCode === 39 && activeElement) {
-
-    let parentId = activeElement.parentNode.id
-
-    columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] + 1));
-    if (!columnToInsert) return;
-
-	columnToInsert.appendChild(activeElement);
-
-	const pattern = /(\d+)$/;
-	const id = +activeElement.id.match(pattern)[1];
-
-	console.log("AE: ", id)
-
-	// обновить таску в массиве
-	let  = tasks.find(task => task.id === editedTask.id);
-
-	//записать в локал сторедж
-
-  }
-});
-
-document.addEventListener("keydown", (event) => {
-
-  if (event.keyCode === 37 && activeElement) {
-
-    let parentId = activeElement.parentNode.id
-
-    columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] - 1));
-    if (!columnToInsert) return;
-    columnToInsert.appendChild(activeElement);
-  }
-
-});
