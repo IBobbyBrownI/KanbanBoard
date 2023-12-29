@@ -1,320 +1,308 @@
-let inputText = document.querySelector("#todo-input-1");
-let inputEstimation = document.querySelector("#todo-input-2");
-let inputDescription = document.querySelector("#todo-input-3")
-let button = document.querySelector(".button");
-let cancelButton = document.querySelector(".cancelButton")
+const inputText = document.querySelector("#todo-input-1");
+const inputEstimation = document.querySelector("#todo-input-2");
+const inputDescription = document.querySelector("#todo-input-3")
+const saveTaskButton = document.querySelector(".button");
+const cancelButton = document.querySelector(".cancelButton")
 const tasksList = document.querySelectorAll(".swim-lane");
 const toDoBlock = document.querySelector('#todo-lane-1');
-let blockButton = document.querySelector(".blockButton");
 let activeElement;
-let columnToInsert;
 let editedTask = null;
 
 let tasks = [];
 
+// Достаем данные из local storage и записываем их в data
 let data = localStorage.getItem('taskBlockList')
 
-console.log("data: ", data)
-
-if(data) {
-	tasks = JSON.parse(data)
+//Проверка на наличие данных в data, в противном случае появится ошибка
+try {
+  if (data) {
+    tasks = JSON.parse(data)
+  }
+} catch (error) {
+  alert("can not get data from local storage...")
 }
 
-console.log("console is working");
+//Проходится по всему массиву tasksList и вызывает функцию, которая отрисовывает объект
+tasksList.forEach((box, index) => {
+  let selectedTasks = tasks.filter((task) => task.status === index)
+  selectedTasks.forEach((task) => {
+    taskBlock = createTaskBlock(task);
 
-button.onclick = function() {
+    box.appendChild(taskBlock);
+  })
+});
 
-	if(!editedTask) {
-	console.log("click is working");
+//Функция создающая или изменяющая таск
+saveTaskButton.onclick = function () {
+  //Если не editedTask = null, то есть кнопка "edit" не была нажата, то идет добавление таски
+  if (!editedTask) {
 
-	console.log(...tasks.map(a => a.id))
+    let taskObj = {
+      name: inputText.value,
+      estimation: inputEstimation.value,
+      description: inputDescription.value,
+      status: 0,
+      id: tasks.length ? Math.max(...tasks.map((a) => a.id)) + 1 : 1
+    }
 
-	let taskObj = {
-		name: inputText.value,
-		estimation: inputEstimation.value,
-		description: inputDescription.value,
-		status: 0,
-		id: tasks.length ? Math.max(...tasks.map((a) => a.id )) + 1 : 1//пребирает и возвращает новое значение
-	}
-
-	if(!taskObj.name) {
-		alert("Undefind task input, task = Unnamed")	
-		taskObj.name = "Unnamed";	
-	}
-
-	if (!taskObj.estimation) {
-		alert("Undefind Estimation input, estimation = 0")
-		taskObj.estimation = 0;
-	}
-
-	console.log("name:", taskObj.name);
-	console.log("estimation:", taskObj.estimation);
-	console.log(taskObj);
-
-	console.log(tasks)
-
-	const taskBlock = createTaskBlock(taskObj);
-	toDoBlock.appendChild(taskBlock);
-
-	tasks.push(taskObj)
-	localStorage.setItem('taskBlockList', JSON.stringify(tasks))
-
-	const value = document.getElementById("todo-input-1");
-	const value2 = document.getElementById("todo-input-2");
-	const value3 = document.getElementById("todo-input-3");
+	//Имя должно быть обязательным
+    if (!taskObj.name) {
+      alert("Name is required!!!")
+      return;
+    }
 	
-	if(value) {
-		value.value = '';
-	}
-	if(value2) {
-		value2.value = '';
-	}
-	if(value3) {
-		value3.value = '';
-	}
-} else {
+	//Если не указать оценку, то estimation = null
+    if (!taskObj.estimation) {
+      taskObj.estimation = null;
+    }
 
-	//сохранение редактируемого (найти элементы, схранить в ls)
-	let data = localStorage.getItem('taskBlockList');
-	let tasksFromLocalStorage = JSON.parse(data);
+	//Создание объекта и добавление в массив и local storage
+    const taskBlock = createTaskBlock(taskObj);
+    toDoBlock.appendChild(taskBlock);
+    tasks.push(taskObj)
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks))
 
-	let selectedTaskId = editedTask.id;
-	console.log("selectedTaskId: ", selectedTaskId)
+    clearInputs();
+  } else {
+	//Этот блок срабатывает, если была нажата кнока "edit"
+	//Ищет выбранную таску в массиве
+    let selectedTask = tasks.find(task => task.id === editedTask.id);
 
-	let selectedTask = tasksFromLocalStorage.find(task => task.id === selectedTaskId);
-	console.log("SelectedTask: ", selectedTask)
+	//Если находит, идет валидация входных данных
+    if (selectedTask) {
 
-	if(selectedTask) {
-		let a = document.getElementById('todo-input-1')
-		let b = document.getElementById('todo-input-2')
-		let c = document.getElementById('todo-input-3')
+      // разбить на отдельные сообщения
+      if (!inputText.value.trim() || !inputEstimation.value || inputEstimation.value <= 0) {
+        alert("invalid input");
+        return;
+      }
+      selectedTask.name = inputText.value;
+      //приведение типов
+      selectedTask.estimation = inputEstimation.value;
+      selectedTask.description = inputDescription.value;
+    } else {
+	  //иначе, выводит ошибку
+      alert("selected task is not found...");
+      return;
+    }
 
-		selectedTask.name = a.value;
-		selectedTask.estimation = b.value;
-		selectedTask.description = c.value;
-		
-		if(a) {
-			a.value = '';
-		}
-		if(b) {
-			b.value = '';
-		}
-		if(c) {
-			c.value = '';
-		}
-	}
+	//Изменяет объект в local storage
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks));
 
-	localStorage.setItem('taskBlockList', JSON.stringify(tasksFromLocalStorage));
-	console.log("tasksFromLocalStorage: ", tasksFromLocalStorage)
+	//Вставляет измененные значения в таску
+	const taskNameBlock = document.getElementById("task_name_" + selectedTask.id)
+    const taskDescriptionBlock = document.getElementById("task_description_" + selectedTask.id)
+    const taskEstimationBlock = document.getElementById("task_estimation_" + selectedTask.id)
+    taskNameBlock.textContent = inputText.value;
+    taskDescriptionBlock.textContent = inputDescription.value;
+    taskEstimationBlock.textContent = inputEstimation.value;
 
-	button.textContent = "Add"
-	cancelButton.style.display = 'none'
-	editedTask = null;
-	location.reload()
-}
+	//Переключение в add mode
+    switchMode(null);
+  }
 };
 
-console.log(tasksList)
+//Вешаем событие на кноку "cancel", нажимая, меняем на add mode
+cancelButton.addEventListener('click', () => switchMode(null));
 
-tasksList.forEach((box, index) => {
-	let selectedTasks = tasks.filter((task) => task.status === index)
-	selectedTasks.forEach((task) => {
-		taskBlock = createTaskBlock(task);
-
-		box.appendChild(taskBlock);
-	})
-});
-
-function createTaskBlock(task) {
-	
-	let taskBlock = document.createElement('div');
-
-	// ---------------------------- Task Block ----------------------------
-
-	taskBlock.textContent = task.name
-	taskBlock.className = 'task';
-	taskBlock.id = task.id;
-
-	taskBlock.addEventListener('click', (event) => {
-		event.stopPropagation();
-
-		const currentAE = document.querySelector(".activeElement")
-
-		if(currentAE) {
-			currentAE.classList.remove("activeElement");
-		}
-		
-		if(activeElement === event.target){
-		  activeElement.classList.remove("activeElement")
-		  activeElement = null;
-		}
-		else if(taskBlock === event.target){
-			activeElement = event.target
-			activeElement.classList.add("activeElement")
-		}
-	});
-
-	// ---------------------------- Description ----------------------------
-
-	let descriptionP = document.createElement('p');	
-	descriptionP.classList.add("description")
-	descriptionP.textContent = "Description: "
-	if(task.description) {
-		descriptionP.textContent = "Description: " + task.description
-	}
-
-	// ---------------------------- Estimation ----------------------------
-
-	let estimationDiv = document.createElement('div')
-	estimationDiv.classList.add("estimation")
-	estimationDiv.textContent = "Estimation: " + task.estimation;
-
-	// ---------------------------- Edit Button ----------------------------
-
-	let editButton = document.createElement('button');
-	editButton.textContent = "Edit";
-	editButton.classList.add("blockButton")
-	editButton.addEventListener('click', buttonClick);
-
-	// ---------------------------- Delete Button ----------------------------
-
-	let deleteButton = document.createElement('button');
-	deleteButton.textContent = "Delete";
-	deleteButton.classList.add("blockButton")
-	deleteButton.addEventListener('click', function() {
-
-	taskBlock.remove();
-
-	let taskIndex = tasks.findIndex(t => t.id === task.id);
-	if (taskIndex !== -1) {
-    	tasks.splice(taskIndex, 1); //Метод splice удаляет или добавляет элементы в массив. Можно только удалять элементы, только добавлять или делать и то и другое одновременно.
-		localStorage.setItem('taskBlockList', JSON.stringify(tasks));
-	}
-});
-
-
-	// --------------------- Setting values in inputs ---------------------
-	
-	function buttonClick() {
-		editedTask = task;
-
-		// change addButton in "save"
-		document.getElementById('addButton').textContent = "Save"
-
-		// set input values...
-		let a = document.getElementById('todo-input-1');
-		a.value = editedTask.name;
-		console.log("setting name!", a.value)
-		document.getElementById('todo-input-1').value = a.value;
-		cancelButton.style.display = "initial"
-
-		let b = document.getElementById('todo-input-2');
-		b.value = editedTask.estimation;
-		console.log("setting estimation!", b.value)
-		document.getElementById('todo-input-2').value = b.value;
-
-		let c = document.getElementById('todo-input-3');
-		c.value = editedTask.description;
-		console.log("setting description!", c.value)
-
-		console.log("Edited task before cancel: ", editedTask)
-	}
-
-	// ---------------------------- Append Childs ----------------------------
-
-	taskBlock.appendChild(descriptionP);
-	taskBlock.appendChild(estimationDiv);
-	taskBlock.appendChild(editButton);
-	taskBlock.appendChild(deleteButton);
-
-	return taskBlock;
-}
-
-	cancelButton.addEventListener('click', cancelClick);
-
-	function cancelClick() {
-
-		let cancelButton = document.getElementById('cancelButton');
-
-		let input1 = document.getElementById('todo-input-1');
-		let input2 = document.getElementById('todo-input-2');
-		let input3 = document.getElementById('todo-input-3');
-
-		if(input1) {
-			input1.value = '';
-		}
-		if(input2) {
-			input2.value = '';
-		}
-		if(input3) {
-			input3.value = '';
-		}
-
-		document.getElementById('addButton').textContent = "Add"
-		cancelButton.style.display = 'none';
-		editedTask = null;
-		console.log("Edited task = ",editedTask)
-	}
+//Вешаем событие на саму страницу, если кликаем не на объект, то есть на любое другое место, Active Elemet
+//становиться null
 
 document.addEventListener('click', (event) => {
-	if(!activeElement){
-		return;	
-	}
+  if (!activeElement) {
+    return;
+  }
   activeElement.classList.remove("activeElement")
   activeElement = null;
-//   activeElement.classList.remove("activeElement")
-  console.log("Active is null")
-
 });
 
+//Вешаем события на нажатие клавиши
 document.addEventListener("keydown", (event) => {
 
-  if(event.keyCode === 39 && activeElement) {
-	console.log("activeElement", activeElement)
- 	console.log("key is pressed!", event.keyCode)
-    const parent = activeElement.parentElement;
+  //Если код клавиши = 39 и есть active element, то меняем его расположение
+  if (event.keyCode === 39 && activeElement) {
 
-	let parentId = activeElement.parentNode.id // geting parentId
+	//Находим id родителя
+    let parentId = activeElement.parentNode.id
 
-// ------------------------- First way ------------------------- // 
-
-	let value = 1;
-	if (parentId === 'todo-lane-'+value) {
-		columnToInsert = document.querySelector('#todo-lane-'+(value+1));
-	} else if (parentId === 'todo-lane-'+(value+1)) {
-		columnToInsert = document.querySelector('#todo-lane-'+(value+2));
-	} else if (parentId === 'todo-lane-'+(value+2)) {
-		columnToInsert = document.querySelector('#todo-lane-'+(value+3));
-	}
+	//Изменяем id, добавляя единичку, а по скольку у объекта не может быть 2 родителя, удалять не приходится
+    let columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] + 1));
+    if (!columnToInsert) return;
 
     columnToInsert.appendChild(activeElement);
-  }
 
+	//Ищем id Active element
+    const pattern = /(\d+)$/;
+    const id = +activeElement.id.match(pattern)[1];
+
+	//Находим в массиве и изменяем
+	tasks = tasks.map(t => t.id === id?  { ...t, status: t.status + 1 }: t);
+
+	//Записываем измененный массив в local storage
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+  }
 });
 
 document.addEventListener("keydown", (event) => {
 
-	if(event.keyCode === 37 && activeElement) {
-	  console.log("activeElement", activeElement)
-	   console.log("key is pressed!", event.keyCode)
-	  const parent = activeElement.parentElement;
-  
-	  let parentId = activeElement.parentNode.id // geting parentId
-    
-  // ------------------------- First way ------------------------- // 
-	  if(parentId === 'todo-lane-4') {
-		columnToInsert = document.querySelector('#todo-lane-3')
-	  } else if(parentId === 'todo-lane-3') {
-	  	columnToInsert = document.querySelector('#todo-lane-2');
-	  	// console.log('Column To Insert: ', columnToInsert)
-	  } else if (parentId === 'todo-lane-2') {
-	  	// console.log('Column 2 To Insert: ', columnToInsert)
-	  	columnToInsert = document.querySelector('#todo-lane-1');
-	  } else if (parentId === 'todo-lane-1') {
-	  	columnToInsert = document.querySelector('#todo-lane-1');
-	  }
-  
-	  columnToInsert.appendChild(activeElement);
-	}
-  
+  //Если код клавиши = 39 и есть active element, то меняем его расположение
+  if (event.keyCode === 37 && activeElement) {
+
+	//Находим id родителя
+    let parentId = activeElement.parentNode.id
+
+	//Изменяем id, добавляя единичку, а по скольку у объекта не может быть 2 родителя, удалять не приходится
+    let columnToInsert = document.querySelector('#todo-lane-' + (+parentId[parentId.length - 1] - 1));
+    if (!columnToInsert) return;
+    columnToInsert.appendChild(activeElement);
+
+	//Ищем id Active element
+    const pattern = /(\d+)$/;
+    const id = +activeElement.id.match(pattern)[1];
+
+	//Находим в массиве и изменяем
+	tasks = tasks.map(t => t.id === id?  { ...t, status: t.status - 1 }: t);
+
+	//Записываем измененный массив в local storage
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+  }
+});
+
+//Функция изменения режима add и edit
+function switchMode(task) {
+  //Если передаем таску в качестве параметра, тогда срабатывает edit mode
+  if (task) {
+    editedTask = task;
+
+	//Изменяем textContent кнопки на "Save"
+    document.getElementById('addButton').textContent = "Save"
+
+	//Изменяем значения
+    inputText.value = editedTask.name
+    inputText.value = inputText.value
+	//Показываем кнопку "Cancel"
+    cancelButton.style.display = "initial"
+    inputEstimation.value = editedTask.estimation;
+    inputEstimation.value = inputEstimation.value;
+    inputDescription.value = editedTask.description;
+
+  } else {
+	//Если в качетсве параметра был передан null, срабатывает add mode
+	//Меняем text content на Add Task
+    document.getElementById('addButton').textContent = "Add Task"
+	//Убираем кнопку cancel с глаз долой :)
+    cancelButton.style.display = 'none';
+	//убираем editTask, присваивая ему null
+    editedTask = null;
+
+    clearInputs();
+  }
+}
+
+//Инквизиция инпутов
+function clearInputs() {
+  inputText.value = '';
+  inputEstimation.value = '';
+  inputDescription.value = '';
+}
+
+//Функция отрисовки таски
+function createTaskBlock(task) {
+
+  //Создаем div элемент
+  let taskBlock = document.createElement('div');
+
+  // ---------------------------- Task Block ----------------------------
+
+  //Добавлем класс таске
+  taskBlock.className = 'task';
+  //Сетаем Idшник
+  taskBlock.id = 'task_' + task.id;
+
+  //Кидаем обработчик событий на клик по таске.
+  taskBlock.addEventListener('click', (event) => {
+    event.stopPropagation();
+
+	//Создаем переменную currentAE и кидаем в нее Active Element
+    const currentAE = document.querySelector(".activeElement")
+
+	//Если currentAE не равен null, то удаляем класс activeElement 
+    if (currentAE) {
+      currentAE.classList.remove("activeElement");
+    }
+
+	//Если произошел повторный клик на active element, то удаляется класс activeElement
+    if (activeElement === event.target) {
+      activeElement.classList.remove("activeElement")
+      activeElement = null;
+	//Устанавливаем класс activeElement таске
+    } else if (taskBlock === event.target) {
+      activeElement = event.target
+      activeElement.classList.add("activeElement")
+    }
   });
+
+  // ---------------------------- Name ----------------------------
+
+  const nameElement = document.createElement('span');
+  nameElement.placeholder = "Name"
+  nameElement.id = 'task_name_' + task.id;
+  nameElement.textContent = task.name;
+
+
+  // ---------------------------- Description ----------------------------
+
+  let descriptionP = document.createElement('p');
+  descriptionP.id = 'task_description_' + task.id;
+  descriptionP.classList.add("description")
+  descriptionP.placeholder = "Description"
+
+  if (task.description) {
+    descriptionP.textContent = task.description
+  }
+
+  // ---------------------------- Estimation ----------------------------
+
+  let estimationDiv = document.createElement('div')
+  estimationDiv.id = 'task_estimation_' + task.id;
+  estimationDiv.classList.add("estimation")
+  descriptionP.placeholder = "Estimation"
+  estimationDiv.textContent = task.estimation;
+
+// ---------------------------- Edit Button ----------------------------
+
+  let editButton = document.createElement('button');
+  editButton.textContent = "Edit";
+  editButton.classList.add("blockButton")
+  editButton.addEventListener('click', () => switchMode(task));
+
+  // ---------------------------- Delete Button ----------------------------
+
+  let deleteButton = document.createElement('button');
+  deleteButton.textContent = "Delete";
+  deleteButton.classList.add("blockButton")
+
+  //Функция подтверждения действия удаления
+  deleteButton.addEventListener('click', () => {
+	//Если в качестев ответа на confirm был передан null -> return
+    if (!confirm("Are you sure want to delete?"))
+      return;
+
+	//иначе, удаляем из массива tasks и local storage
+    taskBlock.remove();
+    tasks = tasks.filter((t) => t.id !== task.id)
+    localStorage.setItem('taskBlockList', JSON.stringify(tasks));
+  });
+
+
+
+  // ---------------------------- Append Childs ----------------------------
+
+  taskBlock.appendChild(nameElement);
+  taskBlock.appendChild(descriptionP);
+  taskBlock.appendChild(estimationDiv);
+  taskBlock.appendChild(editButton);
+  taskBlock.appendChild(deleteButton);
+
+  return taskBlock;
+}
